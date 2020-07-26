@@ -21,7 +21,7 @@ class autofilter_main():
             self.column_datatype_list.append(str(column_data_types_raw[x]))
 
 
-        self.date_time_column_detection(self.df)
+        self.column_type_detection_main(self.df)
 
 
 
@@ -60,7 +60,7 @@ class autofilter_main():
 
     # def detect_column_datatypes(self,df):
 
-    def date_time_column_detection(self,df):
+    def column_type_detection_main(self,df):
         print(df)
         df = df.to_pandas_df()
         numpy_array = df.values
@@ -79,13 +79,33 @@ class autofilter_main():
             for y in range(len(numpy_array)):
 
                 if column_datatype_list[x]=="<class 'str'>":
-                    print(numpy_array[y][x])
-                    try:
-                        print(pd.to_datetime(str(numpy_array[y][x])))
-                        detected_data_type.append('Datetime')
-                    except:
-                        detected_data_type.append('str')
+                    # print(numpy_array[y][x])
+                    # try:
+                    #     print(pd.to_datetime(str(numpy_array[y][x])))
+                    #     detected_data_type.append('Datetime')
+                    # except:
+                    #     detected_data_type.append('str')
 
                 else:
                     detected_data_type.append(str(column_datatype_list[x]))
         print(detected_data_type)
+
+    def type_checker(self,data):
+        try:
+            result=pd.to_datetime(data)
+            print(result)
+            detected_type='datetime'
+        except:
+            try:
+                result=float(data)
+                print(result)
+                detected_type = 'float64'
+            except:
+                try:
+                    result = str(data)
+                    print(result)
+                    detected_type = 'str'
+                except:
+                    detected_type='null'
+
+        return detected_type
