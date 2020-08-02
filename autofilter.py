@@ -1,11 +1,11 @@
 import sklearn
 import vaex
 import pandas as pd
-import ppscore as pps
+# import ppscore as pps
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import os
 
 class autofilter_main():
 
@@ -15,6 +15,7 @@ class autofilter_main():
 
         self.df=self.df.head(100)
 
+
         self.column_datatype_list=[]
         column_data_types_raw = list(self.df.dtypes)
         for x in range(len(column_data_types_raw)):
@@ -22,6 +23,7 @@ class autofilter_main():
 
 
         self.column_type_detection_main(self.df)
+
 
 
 
@@ -45,20 +47,20 @@ class autofilter_main():
         return df
 
 
-    def column_relationships(self,df):
-        df = df.to_pandas_df()
-        plt.figure(1)
-        plt.figure(figsize=(16, 12))
-        sns.heatmap(pps.matrix(df), annot=True, fmt=".2f")
-        plt.show()
-
-        plt.figure(2)
-        plt.figure(figsize=(16, 12))
-
-        sns.heatmap(pd.DataFrame(df.corr()), annot=True, fmt=".2f")
-        plt.show()
-
-    # def detect_column_datatypes(self,df):
+    # def column_relationships(self,df):
+    #     df = df.to_pandas_df()
+    #     plt.figure(1)
+    #     plt.figure(figsize=(16, 12))
+    #     sns.heatmap(pps.matrix(df), annot=True, fmt=".2f")
+    #     plt.show()
+    #
+    #     plt.figure(2)
+    #     plt.figure(figsize=(16, 12))
+    #
+    #     sns.heatmap(pd.DataFrame(df.corr()), annot=True, fmt=".2f")
+    #     plt.show()
+    #
+    # # def detect_column_datatypes(self,df):
 
     def column_type_detection_main(self,df):
         print(df)
@@ -68,44 +70,48 @@ class autofilter_main():
 
         print(numpy_array)
 
-
-
         print(self.column_datatype_list)
-        column_name=df.columns
+        column_name_list=df.columns
         column_datatype_list=self.column_datatype_list
-        detected_data_type=[]
-        for x in range(len(column_name)):
+        column_wise_data_type=[]
+        for x in range(len(column_name_list)):
 
             for y in range(len(numpy_array)):
 
                 if column_datatype_list[x]=="<class 'str'>":
-                    # print(numpy_array[y][x])
-                    # try:
-                    #     print(pd.to_datetime(str(numpy_array[y][x])))
-                    #     detected_data_type.append('Datetime')
-                    # except:
-                    #     detected_data_type.append('str')
+                    result=self.type_checker(numpy_array[y][x])
+                    column_wise_data_type.append(result)
 
                 else:
-                    detected_data_type.append(str(column_datatype_list[x]))
-        print(detected_data_type)
+                    column_wise_data_type.append(str(column_datatype_list[x]))
+            self.column_wise_datatype_(column_wise_data_type,column_name_list[x])
+            column_wise_data_type=[]
+
 
     def type_checker(self,data):
         try:
-            result=pd.to_datetime(data)
-            print(result)
+            pd.to_datetime(data)
             detected_type='datetime'
         except:
             try:
-                result=float(data)
-                print(result)
+                float(data)
                 detected_type = 'float64'
             except:
                 try:
-                    result = str(data)
-                    print(result)
+                    str(data)
                     detected_type = 'str'
                 except:
                     detected_type='null'
 
         return detected_type
+
+
+    def column_wise_datatype_(self,data,column_name):
+        print('Column type detection '+str(column_name))
+        series_data=pd.Series(data)
+
+        detected_data_types=series_data.value_counts()
+        print(list(detected_data_types.index))
+        print(list(detected_data_types))
+
+
