@@ -9,42 +9,90 @@ import os
 
 class autofilter_main():
 
-    def __init__(self,file_path,file_name):
+    def __init__(self,text):
+        if text==True:
+            print('Autofiter initialising')
+            print('Design By:Lakitha Sahan ')
+            print('Copyright 2020 ')
 
-        self.df=self.file_type_detection(file_path,file_name)
-
-        self.df=self.df.head(100)
-
-
-        self.column_datatype_list=[]
-        column_data_types_raw = list(self.df.dtypes)
-        for x in range(len(column_data_types_raw)):
-            self.column_datatype_list.append(str(column_data_types_raw[x]))
-
-
-        self.column_type_detection_main(self.df)
+        else:
+            pass
 
 
 
 
 
-    def file_type_detection(self,file_path,file_name):
+    ###########################Main functions starting point #############################
+    ######################################################################################
+    ######################################################################################
+    def extract_file_data(self, file_path, file_name):
         print('file type detection')
-        file_type_list=str(file_name).split('.')
-        file_type=file_type_list[len(file_type_list)-1]
-        print(file_type)
+        file_type_list = str(file_name).split('.')
+        file_type = file_type_list[len(file_type_list) - 1]
 
-        if file_type=='csv':
+        if file_type == 'csv':
             df = vaex.from_csv(file_path, copy_index=False)
 
 
-        elif file_type=='hdf5':
-            df=vaex.open(file_path)
-
-        elif file_type=='parquet':
+        elif file_type == 'hdf5':
             df = vaex.open(file_path)
 
-        return df
+        elif file_type == 'parquet':
+            df = vaex.open(file_path)
+
+        self.column_datatype_list = []
+        column_data_types_raw = list(df.dtypes)
+        for x in range(len(column_data_types_raw)):
+            self.column_datatype_list.append(str(column_data_types_raw[x]))
+        raw_detected_column_datatype=self.column_datatype_list
+        return df,raw_detected_column_datatype
+
+    def extract_major_datatype(self,df):
+
+        df = df.to_pandas_df()
+        numpy_array = df.values
+        datatype_list=[]
+
+        column_name_list=df.columns
+        column_datatype_list=self.column_datatype_list
+        column_wise_data_type=[]
+
+        result_column_name=[]
+        result_column_datatype=[]
+        for x in range(len(column_name_list)):
+
+            for y in range(len(numpy_array)):
+
+                if column_datatype_list[x]=="<class 'str'>":
+                    result=self.type_checker(numpy_array[y][x])
+                    column_wise_data_type.append(result)
+
+                else:
+                    column_wise_data_type.append(str(column_datatype_list[x]))
+            major_datatype,column_name=self.column_wise_datatype_(column_wise_data_type,column_name_list[x])
+            result_column_name.append(column_name)
+            result_column_datatype.append(major_datatype)
+            column_wise_data_type=[]
+        return result_column_name,result_column_datatype
+
+
+
+
+
+
+
+
+
+
+
+
+    ##########################Main Function End############################################
+
+
+
+    ###########################Control Functions###########################################
+
+
 
 
     # def column_relationships(self,df):
@@ -62,30 +110,7 @@ class autofilter_main():
     #
     # # def detect_column_datatypes(self,df):
 
-    def column_type_detection_main(self,df):
-        print(df)
-        df = df.to_pandas_df()
-        numpy_array = df.values
-        datatype_list=[]
 
-        print(numpy_array)
-
-        print(self.column_datatype_list)
-        column_name_list=df.columns
-        column_datatype_list=self.column_datatype_list
-        column_wise_data_type=[]
-        for x in range(len(column_name_list)):
-
-            for y in range(len(numpy_array)):
-
-                if column_datatype_list[x]=="<class 'str'>":
-                    result=self.type_checker(numpy_array[y][x])
-                    column_wise_data_type.append(result)
-
-                else:
-                    column_wise_data_type.append(str(column_datatype_list[x]))
-            self.column_wise_datatype_(column_wise_data_type,column_name_list[x])
-            column_wise_data_type=[]
 
 
     def type_checker(self,data):
@@ -107,11 +132,18 @@ class autofilter_main():
 
 
     def column_wise_datatype_(self,data,column_name):
-        print('Column type detection '+str(column_name))
+
         series_data=pd.Series(data)
 
-        detected_data_types=series_data.value_counts()
-        print(list(detected_data_types.index))
-        print(list(detected_data_types))
+        detected_data_types=series_data.value_counts(normalize=True)
+        for x in  range(len(list(detected_data_types))):
+            data_percentage_list=list(detected_data_types)
+            data_percentage=data_percentage_list[x]
+            if data_percentage>=0.75:
+                data_type_name_list=list(detected_data_types.index)
+                major_datatype=data_type_name_list[x]
+
+
+        return major_datatype,column_name
 
 

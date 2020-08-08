@@ -3,7 +3,15 @@ import time
 import enum
 import os
 start_time = time.time()
-filter_obj=autofilter_main('data/accounts_receivable.csv','accounts_receivable.csv')
+filter_obj=autofilter_main(True)
+df,raw_detected_column_datatype=filter_obj.extract_file_data('data/accounts_receivable.csv','accounts_receivable.csv')
+result_column_name,result_column_datatype=filter_obj.extract_major_datatype(df)
+
+
+
+
+print(result_column_name,result_column_datatype)
+
 print("--- %s seconds ---" % (time.time() - start_time))
 print(os.path.getsize('data/accounts_receivable.csv'))
 
@@ -33,5 +41,5 @@ def get_file_size(file_name, size_type = SIZE_UNIT.BYTES ):
    return convert_unit(size, size_type)
 
 
-size = get_file_size('data/accounts_receivable.csv', SIZE_UNIT.MB)
+size =round(get_file_size('data/accounts_receivable.csv', SIZE_UNIT.MB),2)
 print('Size of file is : ', size ,  'MB')
