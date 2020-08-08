@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+from autofilter_library_building.autofilterv1.file_specs_detect import get_file_size, SIZE_UNIT
+
+
 class autofilter_main():
 
     def __init__(self,text):
@@ -14,6 +17,8 @@ class autofilter_main():
             print('Autofiter initialising')
             print('Design By:Lakitha Sahan ')
             print('Copyright 2020 ')
+
+
 
         else:
             pass
@@ -26,7 +31,9 @@ class autofilter_main():
     ######################################################################################
     ######################################################################################
     def extract_file_data(self, file_path, file_name):
-        print('file type detection')
+        print('extract_file_data')
+        size = round(get_file_size(file_path, SIZE_UNIT.MB), 2)
+        print('Size of file is : ', size, 'MB')
         file_type_list = str(file_name).split('.')
         file_type = file_type_list[len(file_type_list) - 1]
 
@@ -139,7 +146,7 @@ class autofilter_main():
         for x in  range(len(list(detected_data_types))):
             data_percentage_list=list(detected_data_types)
             data_percentage=data_percentage_list[x]
-            if data_percentage>=0.75:
+            if data_percentage>=0.55:
                 data_type_name_list=list(detected_data_types.index)
                 major_datatype=data_type_name_list[x]
 
