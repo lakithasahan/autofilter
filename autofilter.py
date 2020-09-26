@@ -1,12 +1,12 @@
 import sklearn
-import vaex
-import pandas as pd
+
+import vaex, pandas as pd
 # import ppscore as pps
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-
+# import modin.pandas as pd
 from autofilter_library_building.autofilterv1.file_specs_detect import get_file_size, SIZE_UNIT
 
 
@@ -24,13 +24,16 @@ class autofilter_main():
             pass
 
 
-
-
-
     ###########################Main functions starting point #############################
     ######################################################################################
     ######################################################################################
     def extract_file_data(self, file_path, file_name):
+        """
+
+        :param file_path: This is the data location,ex: csv file location
+        :param file_name: This is the file name
+        :return:
+        """
         print('extract_file_data')
         size = round(get_file_size(file_path, SIZE_UNIT.MB), 2)
         print('Size of file is : ', size, 'MB')
@@ -40,12 +43,15 @@ class autofilter_main():
         if file_type == 'csv':
             df = vaex.from_csv(file_path, copy_index=False)
 
-
         elif file_type == 'hdf5':
             df = vaex.open(file_path)
 
         elif file_type == 'parquet':
             df = vaex.open(file_path)
+
+        elif file_type =='s3':
+            df = vaex.open(file_path)
+
 
         self.column_datatype_list = []
         column_data_types_raw = list(df.dtypes)
@@ -54,8 +60,13 @@ class autofilter_main():
         raw_detected_column_datatype=self.column_datatype_list
         return df,raw_detected_column_datatype
 
-    def extract_major_datatype(self,df):
+    def extract_major_datatype(self,df,majority_ratio=0.55):
+        """
 
+        :param majority_ratio:
+        :param df: df object to extract major datatype
+        :return:
+        """
         df = df.to_pandas_df()
         numpy_array = df.values
         datatype_list=[]
@@ -76,15 +87,25 @@ class autofilter_main():
 
                 else:
                     column_wise_data_type.append(str(column_datatype_list[x]))
-            major_datatype,column_name=self.column_wise_datatype_(column_wise_data_type,column_name_list[x])
+            major_datatype,column_name=self.column_wise_datatype_(column_wise_data_type,column_name_list[x],majority_ratio)
             result_column_name.append(column_name)
             result_column_datatype.append(major_datatype)
             column_wise_data_type=[]
         return result_column_name,result_column_datatype
 
 
+    def show_data_stats(self,df):
+        """
+
+        :param df:
+        """
+        print('Data stats')
+
+        stats_df=df.describe()
 
 
+
+        print(stats_df)
 
 
 
@@ -94,6 +115,10 @@ class autofilter_main():
 
 
     ##########################Main Function End############################################
+
+
+
+
 
 
 
@@ -138,7 +163,7 @@ class autofilter_main():
         return detected_type
 
 
-    def column_wise_datatype_(self,data,column_name):
+    def column_wise_datatype_(self,data,column_name,majority_ratio):
 
         series_data=pd.Series(data)
 
@@ -146,7 +171,7 @@ class autofilter_main():
         for x in  range(len(list(detected_data_types))):
             data_percentage_list=list(detected_data_types)
             data_percentage=data_percentage_list[x]
-            if data_percentage>=0.55:
+            if data_percentage>=majority_ratio:
                 data_type_name_list=list(detected_data_types.index)
                 major_datatype=data_type_name_list[x]
 
