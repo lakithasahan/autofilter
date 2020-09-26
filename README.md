@@ -1,6 +1,6 @@
-# Foobar
+# Autofilter
 
-Foobar is a Python library for dealing with word pluralization.
+Autofilter is a Python library for dealing with data cleansing.
 
 ## Installation
 
