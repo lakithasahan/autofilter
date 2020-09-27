@@ -1,5 +1,6 @@
 # Autofilter
-![filterimage](https://user-images.githubusercontent.com/24733068/94353923-972a1780-00b9-11eb-94b9-c5964e400026.png)
+![filter_data_python](https://user-images.githubusercontent.com/24733068/94353989-0bfd5180-00ba-11eb-937c-6f233010a696.png)
+
 
 Autofilter is a Python library for dealing with data cleansing.
 
