@@ -1,13 +1,46 @@
+# import sklearn
+# import scipy
+# import vaex, pandas as pd
+# # import ppscore as pps
+# import numpy as np
+# import cupy as cp
+
+# import os
+# # import modin.pandas as pd
+
 import sklearn
+import time
 
 import vaex, pandas as pd
-# import ppscore as pps
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
-# import modin.pandas as pd
+import ppscore as pps
+import logging
+# Gets or creates a logger
+logger = logging.getLogger(__name__)
+
+# set log level
+logger.setLevel(logging.WARNING)
+
+# define file handler and set formatter
+file_handler = logging.FileHandler('logfile.log')
+formatter    = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
+file_handler.setFormatter(formatter)
+
+# add file handler to logger
+logger.addHandler(file_handler)
+
+# Logs
+logger.debug('A debug message')
+logger.info('An info message')
+logger.warning('Something is not right.')
+logger.error('A Major error has happened.')
+logger.critical('Fatal error. Cannot continue')
+
 from autofilter_library_building.autofilterv1.file_specs_detect import get_file_size, SIZE_UNIT
+
 
 
 class autofilter_main():
@@ -68,7 +101,10 @@ class autofilter_main():
         :return:
         """
         df = df.to_pandas_df()
-        numpy_array = df.values
+        numpy_array = df.to_numpy()
+        print(df)
+
+
         datatype_list=[]
 
         column_name_list=df.columns
@@ -82,8 +118,10 @@ class autofilter_main():
             for y in range(len(numpy_array)):
 
                 if column_datatype_list[x]=="<class 'str'>":
-                    result=self.type_checker(numpy_array[y][x])
+                    result,remove_row_flag=self.type_checker(numpy_array[y][x])
                     column_wise_data_type.append(result)
+                    if remove_row_flag==True:
+                        logger.critical('Fatal error. Cannot continue at'+str(column_name_list[x])+str(y))
 
                 else:
                     column_wise_data_type.append(str(column_datatype_list[x]))
@@ -94,7 +132,7 @@ class autofilter_main():
         return result_column_name,result_column_datatype
 
 
-    def show_data_stats(self,df):
+    def describe_data(self,df):
         """
 
         :param df:
@@ -102,15 +140,30 @@ class autofilter_main():
         print('Data stats')
 
         stats_df=df.describe()
+        describe_data_list=[]
+        column_names_list=list(stats_df.columns)
+        for x in range(len(column_names_list)):
+            result=stats_df[column_names_list[x]]
+            json_data_format={'count':result['count'],'null_count':result['NA'],'mean':result['mean'],'std':result['std'],'min':result['min'],'max':result['max']}
+            data={'column_name':column_names_list[x],'describe_data':json_data_format}
+            describe_data_list.append(data)
+
+
+        return describe_data_list
 
 
 
-        print(stats_df)
 
+    def check_relationship(self,df):
+        print('asdas')
 
-
-
-
+        # df = pd.read_csv('data/accounts_receivable.csv')
+        # pps.matrix(df)
+        # print(pps.matrix(df))
+        # plt.figure(1)
+        # plt.figure(figsize=(16, 12))
+        # sns.heatmap(pps.matrix(df), annot=True, fmt=".2f")
+        # plt.show()
 
 
 
@@ -123,6 +176,8 @@ class autofilter_main():
 
 
     ###########################Control Functions###########################################
+
+
 
 
 
@@ -146,6 +201,7 @@ class autofilter_main():
 
 
     def type_checker(self,data):
+        remove_row_flag=False
         try:
             pd.to_datetime(data)
             detected_type='datetime'
@@ -155,18 +211,18 @@ class autofilter_main():
                 detected_type = 'float64'
             except:
                 try:
-                    str(data)
-                    detected_type = 'str'
+                    int(data)
+                    detected_type = 'int'
                 except:
                     detected_type='null'
+                    remove_row_flag=True
 
-        return detected_type
+        return detected_type,remove_row_flag
 
 
     def column_wise_datatype_(self,data,column_name,majority_ratio):
 
         series_data=pd.Series(data)
-
         detected_data_types=series_data.value_counts(normalize=True)
         for x in  range(len(list(detected_data_types))):
             data_percentage_list=list(detected_data_types)
